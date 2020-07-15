@@ -26,6 +26,7 @@
 /* USER CODE BEGIN Includes */
 #include "stdbool.h"
 #include "stdint.h"
+#include "math.h"
 #include "usbd_custom_hid_if.h"
 extern USBD_HandleTypeDef hUsbDeviceFS;
 /* USER CODE END Includes */
@@ -37,6 +38,7 @@ extern USBD_HandleTypeDef hUsbDeviceFS;
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define SAMPLE_DURATION 5000
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -51,6 +53,7 @@ DMA_HandleTypeDef hdma_adc1;
 /* USER CODE BEGIN PV */
 
 uint32_t last_time;
+bool calibrated = false;
 
 /* USER CODE END PV */
 
@@ -65,7 +68,10 @@ static void MX_ADC1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+uint8_t adc_to_percent(uint16_t adc_value)
+{
+	return round((adc_value / 4095.0) * 100);
+}
 /* USER CODE END 0 */
 
 /**
@@ -113,6 +119,11 @@ int main(void)
   };
 
   HAL_ADC_Start_DMA(&hadc1, adcBuffer, 2);
+  uint8_t max_percent[2];
+  uint8_t idle_percent[2];
+  uint16_t idle_value[2];
+
+  last_time = HAL_GetTick();
 
   /* USER CODE END 2 */
 
@@ -120,15 +131,49 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  if (calibrated)
+	  {
+		  //this should be where the while looop ends up after calibrated
 
-	  struct throttle_report_t throttleReport;
+		  //top value is 53, bottom is 21...
 
-	  throttleReport.throttle1 = adcBuffer[0];
-	  throttleReport.throttle2 = adcBuffer[1];
-	  throttleReport.reverser1 = 0;
-	  throttleReport.reverser2 = 0;
 
-	  USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, &throttleReport, sizeof(struct throttle_report_t));
+
+		  struct throttle_report_t throttleReport;
+
+		  throttleReport.throttle1 = idle_value[1];
+		  throttleReport.throttle2 = (((adc_to_percent(adcBuffer[1]) - (max_percent[1] - 21)) / 21.0)) * 4095;
+		  throttleReport.reverser1 = ((max_percent[0] / 100.0) * 4095);
+		  throttleReport.reverser2 = ((max_percent[1] / 100.0) * 4095);
+
+		  USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, &throttleReport, sizeof(struct throttle_report_t));
+	  }
+	  else
+	  {
+		  if (HAL_GetTick() - last_time > SAMPLE_DURATION)
+		  {
+			  last_time = HAL_GetTick();
+			  calibrated = true;
+			  for (uint8_t i = 0; i < 2; i++)
+			  {
+				  idle_percent[i] = max_percent[i] - 21;
+				  idle_value[i] = ((idle_percent[i] / 100.0) * 4095);
+			  }
+		  }
+		  else
+		  {
+			  //this should be where the while loop ends up before calibrated
+			  for (uint8_t i = 0; i < 2; i++)
+			  {
+				  uint8_t current_percent = adc_to_percent(adcBuffer[i]);
+				  if (max_percent[i] < current_percent)
+				  {
+					  max_percent[i] = current_percent;
+				  }
+			  }
+		  }
+	  }
+
 
     /* USER CODE END WHILE */
 
