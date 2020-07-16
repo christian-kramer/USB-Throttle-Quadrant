@@ -139,7 +139,7 @@ int main(void)
 
 		  struct throttle_report_t throttleReport;
 
-		  throttleReport.throttle1 = (((adc_to_percent(adcBuffer[0]) - (max_percent[0] - 22)) / 22.0)) * 4095;
+		  throttleReport.throttle1 = (((adc_to_percent(adcBuffer[0]) - (max_percent[0] - 21)) / 22.0)) * 4095;
 		  throttleReport.throttle2 = (((adc_to_percent(adcBuffer[1]) - (max_percent[1] - 22)) / 22.0)) * 4095;
 		  throttleReport.reverser1 = ((((max_percent[0] - 22) - (adc_to_percent(adcBuffer[0]))) / 12.0)) * 4095;
 		  throttleReport.reverser2 = ((((max_percent[1] - 22) - (adc_to_percent(adcBuffer[1]))) / 12.0)) * 4095;
