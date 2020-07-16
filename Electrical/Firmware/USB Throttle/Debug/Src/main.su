@@ -1,7 +1,7 @@
 main.c:71:9:adc_to_percent	24	static
 main.c:81:5:main	48	static
-main.c:189:6:SystemClock_Config	88	static
-main.c:235:13:MX_ADC1_Init	24	static
-main.c:286:13:MX_DMA_Init	16	static
-main.c:304:13:MX_GPIO_Init	40	static
-main.c:334:6:Error_Handler	4	static
+main.c:187:6:SystemClock_Config	88	static
+main.c:233:13:MX_ADC1_Init	24	static
+main.c:284:13:MX_DMA_Init	16	static
+main.c:302:13:MX_GPIO_Init	40	static
+main.c:332:6:Error_Handler	4	static

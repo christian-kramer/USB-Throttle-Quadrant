@@ -137,14 +137,12 @@ int main(void)
 
 		  //top value is 53, bottom is 21...
 
-
-
 		  struct throttle_report_t throttleReport;
 
-		  throttleReport.throttle1 = idle_value[1];
-		  throttleReport.throttle2 = (((adc_to_percent(adcBuffer[1]) - (max_percent[1] - 21)) / 21.0)) * 4095;
-		  throttleReport.reverser1 = ((max_percent[0] / 100.0) * 4095);
-		  throttleReport.reverser2 = ((max_percent[1] / 100.0) * 4095);
+		  throttleReport.throttle1 = (((adc_to_percent(adcBuffer[0]) - (max_percent[0] - 22)) / 22.0)) * 4095;
+		  throttleReport.throttle2 = (((adc_to_percent(adcBuffer[1]) - (max_percent[1] - 22)) / 22.0)) * 4095;
+		  throttleReport.reverser1 = ((((max_percent[0] - 22) - (adc_to_percent(adcBuffer[0]))) / 12.0)) * 4095;
+		  throttleReport.reverser2 = ((((max_percent[1] - 22) - (adc_to_percent(adcBuffer[1]))) / 12.0)) * 4095;
 
 		  USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, &throttleReport, sizeof(struct throttle_report_t));
 	  }
@@ -156,7 +154,7 @@ int main(void)
 			  calibrated = true;
 			  for (uint8_t i = 0; i < 2; i++)
 			  {
-				  idle_percent[i] = max_percent[i] - 21;
+				  idle_percent[i] = max_percent[i] - 22;
 				  idle_value[i] = ((idle_percent[i] / 100.0) * 4095);
 			  }
 		  }
@@ -166,7 +164,7 @@ int main(void)
 			  for (uint8_t i = 0; i < 2; i++)
 			  {
 				  uint8_t current_percent = adc_to_percent(adcBuffer[i]);
-				  if (max_percent[i] < current_percent)
+				  if ((max_percent[i] < current_percent) && (current_percent <= 100))
 				  {
 					  max_percent[i] = current_percent;
 				  }
