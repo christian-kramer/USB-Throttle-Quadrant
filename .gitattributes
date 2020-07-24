@@ -1,0 +1,3 @@
+*.gcode linguist-generated=true
+*.stl linguist-generated=true
+Makefile linguist-generated=true
